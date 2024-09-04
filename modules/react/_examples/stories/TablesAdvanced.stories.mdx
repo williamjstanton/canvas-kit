@@ -3,6 +3,7 @@ import {Table} from '@workday/canvas-kit-react/table';
 import {SelectableRows} from './examples/Table/WithSelectableRows';
 import {ExpandableRows} from './examples/Table/WithExpandableRows';
 import {SortableColumnHeaders} from './examples/Table/WithSortableColumnHeaders';
+import {WithRowActions} from './examples/Table/WithRowActions';
 
 <Meta title="Examples/Tables/Advanced" component={Table} />
 
@@ -40,11 +41,11 @@ table is added to the table just after the expanded row.
 
 ### Selectable Rows
 
-Developed by the Workday accessibility team, using a `Checkbox` labeled "Select All" inside of a table
-column header can be a confusing experience for screen reader users. Screen readers will
+Developed by the Workday accessibility team, using a `Checkbox` labeled "Select All" inside of a
+table column header can be a confusing experience for screen reader users. Screen readers will
 automatically announce the "Select All" column header each time users are reading any cell in
-column 1. For instance, the `Checkbox` in row 4 is decidedly not going to select all of the rows. Here
-is what we did about it:
+column 1. For instance, the `Checkbox` in row 4 is decidedly not going to select all of the rows.
+Here is what we did about it:
 
 - We intentionally rendered row 1, column 1 as a standard `<td>` element so screen readers won't
   automatically announce "Select All" while reading cells in column 1.
@@ -83,3 +84,7 @@ distracting, and makes it harder to understand the data.
   the button that describes the column name and sort state together.
 
 <ExampleCodeBlock code={SortableColumnHeaders} />
+
+### Filterable columns, live status, and row actions
+
+<ExampleCodeBlock code={WithRowActions} />

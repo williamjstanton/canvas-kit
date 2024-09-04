@@ -1,7 +1,20 @@
 import React from 'react';
 
+import {Text} from '@workday/canvas-kit-react/text';
 import {Table} from '@workday/canvas-kit-react/table';
 import {createComponent} from '@workday/canvas-kit-react/common';
+import {createStyles} from '@workday/canvas-kit-styling';
+import {system} from '@workday/canvas-tokens-web';
+
+import {
+  caretDownSmallIcon,
+  caretUpSmallIcon,
+  copyIcon,
+  minusCircleIcon,
+  plusCircleIcon,
+} from '@workday/canvas-system-icons-web';
+import {TertiaryButton} from '../../../../button';
+import {Flex} from '../../../../layout';
 
 // modify the sorting example
 interface CountryData {
@@ -33,14 +46,64 @@ const countryData: CountryData[] = [
   {country: 'Zimbabwe', capital: 'Harare', population: 15990000},
 ];
 
+const rowStyles = createStyles({
+  gridTemplateColumns: '12rem repeat(4, 1fr)',
+});
+
+const textStyles = createStyles({
+  paddingInlineStart: system.space.x3,
+});
+
 export const WithRowActions = () => {
-  return <Table></Table>;
+  return (
+    <Table>
+      <Table.Caption>Population Listed by Country (2021)</Table.Caption>
+      <Table.Head>
+        <Table.Row cs={rowStyles}>
+          <Table.Cell>
+            <Text>Row Actions</Text>
+          </Table.Cell>
+          <FilterColumnDialog>Country</FilterColumnDialog>
+          <FilterColumnDialog>Capital</FilterColumnDialog>
+          <FilterColumnDialog>Population</FilterColumnDialog>
+        </Table.Row>
+      </Table.Head>
+      <Table.Body>
+        {countryData.map(item => {
+          return (
+            <Table.Row key={item.country} cs={rowStyles}>
+              <RowActionIcons />
+              <Table.Header scope="row">
+                <Text cs={textStyles}>{item.country}</Text>
+              </Table.Header>
+              <Table.Cell>
+                <Text cs={textStyles}>{item.capital}</Text>
+              </Table.Cell>
+              <Table.Cell>
+                <Text cs={textStyles}>{item.population.toLocaleString()}</Text>
+              </Table.Cell>
+            </Table.Row>
+          );
+        })}
+      </Table.Body>
+    </Table>
+  );
 };
 
 const RowActionIcons = createComponent()({
   displayName: 'RowActionIcons',
   Component: () => {
-    return <Table.Cell></Table.Cell>;
+    return (
+      <Table.Cell>
+        <Flex>
+          <TertiaryButton icon={copyIcon} size="small" />
+          <TertiaryButton icon={plusCircleIcon} size="small" />
+          <TertiaryButton icon={minusCircleIcon} size="small" />
+          <TertiaryButton icon={caretUpSmallIcon} size="small" />
+          <TertiaryButton icon={caretDownSmallIcon} size="small" />
+        </Flex>
+      </Table.Cell>
+    );
   },
 });
 
@@ -54,6 +117,10 @@ const RowActionMenu = createComponent()({
 const FilterColumnDialog = createComponent()({
   displayName: 'FilterColumnDialog',
   Component: ({children}) => {
-    return <button>{children}</button>;
+    return (
+      <Table.Header scope="col">
+        <button>{children}</button>
+      </Table.Header>
+    );
   },
 });
