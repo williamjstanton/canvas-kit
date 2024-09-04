@@ -1,20 +1,24 @@
 import React from 'react';
 
-import {Text} from '@workday/canvas-kit-react/text';
+import {Flex} from '../../../../layout';
+import {Menu} from '@workday/canvas-kit-react/menu';
 import {Table} from '@workday/canvas-kit-react/table';
-import {createComponent} from '@workday/canvas-kit-react/common';
+import {TertiaryButton} from '../../../../button';
+import {Text} from '@workday/canvas-kit-react/text';
+import {AccessibleHide, createComponent} from '@workday/canvas-kit-react/common';
 import {createStyles} from '@workday/canvas-kit-styling';
 import {system} from '@workday/canvas-tokens-web';
 
 import {
   caretDownSmallIcon,
   caretUpSmallIcon,
+  chevron2xLeftSmallIcon,
+  chevron2xRightSmallIcon,
   copyIcon,
   minusCircleIcon,
   plusCircleIcon,
+  relatedActionsVerticalIcon,
 } from '@workday/canvas-system-icons-web';
-import {TertiaryButton} from '../../../../button';
-import {Flex} from '../../../../layout';
 
 // modify the sorting example
 interface CountryData {
@@ -46,22 +50,32 @@ const countryData: CountryData[] = [
   {country: 'Zimbabwe', capital: 'Harare', population: 15990000},
 ];
 
-const rowStyles = createStyles({
-  gridTemplateColumns: '12rem repeat(4, 1fr)',
-});
-
 const textStyles = createStyles({
   paddingInlineStart: system.space.x3,
 });
 
 export const WithRowActions = () => {
+  const [isCompact, setIsCompact] = React.useState(true);
+
+  // expanded: 12rem; compact: 2rem
+  const rowStyles = createStyles({
+    gridTemplateColumns: `${isCompact ? '2' : '12'}rem repeat(4, 1fr)`,
+  });
+
   return (
     <Table>
       <Table.Caption>Population Listed by Country (2021)</Table.Caption>
       <Table.Head>
         <Table.Row cs={rowStyles}>
           <Table.Cell>
-            <Text>Row Actions</Text>
+            <Flex alignItems="center">
+              <TertiaryButton
+                icon={isCompact ? chevron2xRightSmallIcon : chevron2xLeftSmallIcon}
+                size="small"
+                onClick={() => setIsCompact(prev => !prev)}
+              />
+              {!isCompact && <Text>Row Actions</Text>}
+            </Flex>
           </Table.Cell>
           <FilterColumnDialog>Country</FilterColumnDialog>
           <FilterColumnDialog>Capital</FilterColumnDialog>
@@ -72,7 +86,7 @@ export const WithRowActions = () => {
         {countryData.map(item => {
           return (
             <Table.Row key={item.country} cs={rowStyles}>
-              <RowActionIcons />
+              {isCompact ? <RowActionMenu /> : <RowActionIcons />}
               <Table.Header scope="row">
                 <Text cs={textStyles}>{item.country}</Text>
               </Table.Header>
@@ -110,7 +124,39 @@ const RowActionIcons = createComponent()({
 const RowActionMenu = createComponent()({
   displayName: 'RowActionMenu',
   Component: () => {
-    return <Table.Cell></Table.Cell>;
+    return (
+      <Table.Cell>
+        <Menu>
+          <Menu.Target as={TertiaryButton} size="small" icon={relatedActionsVerticalIcon} />
+          <Menu.Popper>
+            <Menu.Card>
+              <Menu.List>
+                <Menu.Item>
+                  <Menu.Item.Icon icon={copyIcon} />
+                  <Menu.Item.Text>Copy Row</Menu.Item.Text>
+                </Menu.Item>
+                <Menu.Item>
+                  <Menu.Item.Icon icon={plusCircleIcon} />
+                  <Menu.Item.Text>Add Row</Menu.Item.Text>
+                </Menu.Item>
+                <Menu.Item>
+                  <Menu.Item.Icon icon={minusCircleIcon} />
+                  <Menu.Item.Text>Remove Row</Menu.Item.Text>
+                </Menu.Item>
+                <Menu.Item>
+                  <Menu.Item.Icon icon={caretUpSmallIcon} />
+                  <Menu.Item.Text>Move Up</Menu.Item.Text>
+                </Menu.Item>
+                <Menu.Item>
+                  <Menu.Item.Icon icon={caretDownSmallIcon} />
+                  <Menu.Item.Text>Move Down</Menu.Item.Text>
+                </Menu.Item>
+              </Menu.List>
+            </Menu.Card>
+          </Menu.Popper>
+        </Menu>
+      </Table.Cell>
+    );
   },
 });
 
