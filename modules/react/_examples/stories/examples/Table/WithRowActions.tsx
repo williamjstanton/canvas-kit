@@ -5,7 +5,8 @@ import {Menu} from '@workday/canvas-kit-react/menu';
 import {Table} from '@workday/canvas-kit-react/table';
 import {TertiaryButton} from '../../../../button';
 import {Text} from '@workday/canvas-kit-react/text';
-import {AccessibleHide, createComponent} from '@workday/canvas-kit-react/common';
+import {Tooltip} from '@workday/canvas-kit-react/tooltip';
+import {createComponent} from '@workday/canvas-kit-react/common';
 import {createStyles} from '@workday/canvas-kit-styling';
 import {system} from '@workday/canvas-tokens-web';
 
@@ -69,11 +70,14 @@ export const WithRowActions = () => {
         <Table.Row cs={rowStyles}>
           <Table.Cell>
             <Flex alignItems="center">
-              <TertiaryButton
-                icon={isCompact ? chevron2xRightSmallIcon : chevron2xLeftSmallIcon}
-                size="small"
-                onClick={() => setIsCompact(prev => !prev)}
-              />
+              <Tooltip title="Compact View">
+                <TertiaryButton
+                  icon={isCompact ? chevron2xRightSmallIcon : chevron2xLeftSmallIcon}
+                  size="small"
+                  onClick={() => setIsCompact(prev => !prev)}
+                  aria-pressed={isCompact ? 'true' : 'false'}
+                />
+              </Tooltip>
               {!isCompact && <Text>Row Actions</Text>}
             </Flex>
           </Table.Cell>
@@ -127,7 +131,9 @@ const RowActionMenu = createComponent()({
     return (
       <Table.Cell>
         <Menu>
-          <Menu.Target as={TertiaryButton} size="small" icon={relatedActionsVerticalIcon} />
+          <Tooltip title="Row Actions">
+            <Menu.Target as={TertiaryButton} size="small" icon={relatedActionsVerticalIcon} />
+          </Tooltip>
           <Menu.Popper>
             <Menu.Card>
               <Menu.List>
