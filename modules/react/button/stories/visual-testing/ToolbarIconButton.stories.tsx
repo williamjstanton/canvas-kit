@@ -1,10 +1,11 @@
 import * as React from 'react';
 import {customColorTheme} from '../../../../../utils/storybook';
-import {playCircleIcon} from '@workday/canvas-system-icons-web';
+import {boldIcon} from '@workday/canvas-system-icons-web';
 import {ToolbarIconButton} from '@workday/canvas-kit-react/button';
 import {Container, stateTableColumnProps} from './utils';
 import {PartialEmotionCanvasTheme} from '@workday/canvas-kit-react/common';
 import {ComponentStatesTable, StaticStates} from '@workday/canvas-kit-react/testing';
+import {Tooltip} from '../../../tooltip';
 
 export default {
   title: 'Testing/Buttons/Button/Toolbar Icon Button',
@@ -32,12 +33,9 @@ const ToolbarIconButtonTest = (props: {theme?: PartialEmotionCanvasTheme}) => (
     >
       {(props: any) => (
         <Container>
-          <ToolbarIconButton
-            icon={playCircleIcon}
-            aria-label="Play"
-            {...props}
-            onChange={() => {}} // eslint-disable-line no-empty-function
-          />
+          <Tooltip title={`Bold: ${props.toggled ? 'On' : 'Off'}`}>
+            <ToolbarIconButton icon={boldIcon} {...props} />
+          </Tooltip>
         </Container>
       )}
     </ComponentStatesTable>
