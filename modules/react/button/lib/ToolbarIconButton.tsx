@@ -12,7 +12,9 @@ import {
 import {ButtonColors} from './types';
 import {BaseButton} from './BaseButton';
 import {TertiaryButtonProps} from './TertiaryButton';
-import {brand} from '@workday/canvas-tokens-web';
+import {base, brand, system} from '@workday/canvas-tokens-web';
+import {createStencil} from '@workday/canvas-kit-styling';
+import {mergeStyles} from '../../layout';
 
 export interface ToolbarIconButtonProps
   extends Omit<TertiaryButtonProps, 'size' | 'variant'>,
@@ -21,6 +23,34 @@ export interface ToolbarIconButtonProps
   toggled?: boolean;
   shouldMirrorIcon?: boolean;
 }
+
+export const toolbarIconButtonStencil = createStencil({
+  base: {
+    padding: system.space.zero,
+    minWidth: system.space.x8,
+    width: system.space.x8,
+    height: system.space.x8,
+    borderRadius: system.shape.x1,
+    ['& .wd-icon']: {
+      display: 'inline-block',
+      width: 20,
+      height: 20,
+    },
+  },
+  modifiers: {
+    toggled: {
+      true: {
+        outline: `1px solid ${base.licorice400}`,
+        '&:disabled': {
+          outline: `1px solid ${base.licorice100}`,
+        },
+      },
+      false: {
+        outline: '1px solid transparent',
+      },
+    },
+  },
+});
 
 const StyledToolbarIconButton = styled(BaseButton)<StyledType & ToolbarIconButtonProps>({
   ['& .wd-icon']: {
@@ -69,22 +99,17 @@ export const ToolbarIconButton = createComponent('button')({
     }, [toggled, onToggleChange]);
 
     return (
-      <StyledToolbarIconButton
+      <BaseButton
         ref={ref}
         as={Element}
         colors={getToolbarIconButtonColors(theme, toggled)}
         size={'small'}
         fillIcon={toggled}
         aria-pressed={toggled}
-        padding="zero"
-        minWidth={space.l}
-        width={space.l}
-        height={space.l}
-        borderRadius={borderRadius.m}
-        {...elemProps}
+        {...mergeStyles(elemProps, toolbarIconButtonStencil({toggled: toggled}))}
       >
         {icon ? <BaseButton.Icon icon={icon} shouldMirrorIcon={shouldMirrorIcon} /> : children}
-      </StyledToolbarIconButton>
+      </BaseButton>
     );
   },
 });
