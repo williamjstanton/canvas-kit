@@ -36,17 +36,27 @@ export const toolbarIconButtonStencil = createStencil({
       width: 20,
       height: 20,
     },
+    // Maybe I don't need this
+    // Should ingerit from BaseButton w/ prerelease/minor
+    // '&:focus-visible, &.focus': {
+    //   outline: '2px solid transparent',
+    //   outlineOffset: '2px',
+    // },
   },
   modifiers: {
     toggled: {
       true: {
-        outline: `1px solid ${base.licorice400}`,
+        // Using '!important' because inherited focus state changes border colors
+        // Can't have that when using border to communicate 'on' state
+        border: `1px solid ${base.licorice400} !important`,
         '&:disabled': {
-          outline: `1px solid ${base.licorice100}`,
+          border: `1px solid ${base.licorice100} !important`,
         },
       },
       false: {
-        outline: '1px solid transparent',
+        // make sure border color is mapped to a background color
+        // so border does not appear in Windows 11 high contrast mode
+        border: '1px solid var(--button-background-color, white)',
       },
     },
   },
