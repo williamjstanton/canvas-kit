@@ -36,27 +36,38 @@ export const toolbarIconButtonStencil = createStencil({
       width: 20,
       height: 20,
     },
-    // Maybe I don't need this
-    // Should ingerit from BaseButton w/ prerelease/minor
-    // '&:focus-visible, &.focus': {
-    //   outline: '2px solid transparent',
-    //   outlineOffset: '2px',
-    // },
+    '&:hover': {
+      backgroundColor: system.color.bg.alt.default,
+    },
+    '&:active': {
+      backgroundColor: system.color.bg.alt.stronger,
+    },
+    '&:focus-visible, &.focus': {
+      // outline: '2px solid transparent',
+      // outlineOffset: '2px',
+    },
+    '&:disabled': {},
   },
   modifiers: {
     toggled: {
       true: {
         // Using '!important' because inherited focus state changes border colors
         // Can't have that when using border to communicate 'on' state
-        border: `1px solid ${base.licorice400} !important`,
+        border: `1px solid ${system.color.border.contrast.default} !important`,
+        backgroundColor: brand.primary.lightest,
+        '&:hover': {},
+        '&:active': {},
+        '&:focus-visible, &.focus': {},
         '&:disabled': {
-          border: `1px solid ${base.licorice100} !important`,
+          border: `1px solid ${system.color.border.input.disabled} !important`,
+          backgroundColor: brand.primary.lightest,
+          opacity: '1',
         },
       },
       false: {
         // make sure border color is mapped to a background color
         // so border does not appear in Windows 11 high contrast mode
-        border: '1px solid var(--button-background-color, white)',
+        border: '1px solid transparent',
       },
     },
   },
@@ -112,7 +123,7 @@ export const ToolbarIconButton = createComponent('button')({
       <BaseButton
         ref={ref}
         as={Element}
-        colors={getToolbarIconButtonColors(theme, toggled)}
+        // colors={getToolbarIconButtonColors(theme, toggled)}
         size={'small'}
         fillIcon={toggled}
         aria-pressed={toggled}
@@ -133,24 +144,24 @@ const getToolbarIconButtonColors = (theme: EmotionCanvasTheme, toggled?: boolean
   return {
     default: {
       icon: toggled ? themePrimary.main : colors.licorice200,
-      background: toggled ? themePrimary.lightest : 'transparent',
+      // DONE background: toggled ? themePrimary.lightest : 'transparent',
     },
     hover: {
       icon: toggled ? themePrimary.dark : colors.licorice500,
-      background: colors.soap300,
+      // DONE background: colors.soap300,
     },
     active: {
       icon: toggled ? themePrimary.dark : colors.licorice500,
-      background: colors.soap500,
+      // DONE background: colors.soap500,
     },
     focus: {
       icon: toggled ? themePrimary.main : colors.licorice200,
-      background: toggled ? themePrimary.lightest : 'transparent',
+      // DONE background: toggled ? themePrimary.lightest : 'transparent',
     },
     disabled: {
       icon: toggled ? themePrimary.light : colors.soap600,
-      background: toggled ? themePrimary.lightest : 'transparent',
-      opacity: '1',
+      // DONE background: toggled ? themePrimary.lightest : 'transparent',
+      // DONE opacity: '1',
     },
   };
 };
