@@ -1,20 +1,11 @@
 import * as React from 'react';
-import {borderRadius, colors, space} from '@workday/canvas-kit-react/tokens';
-import {
-  focusRing,
-  useTheme,
-  Themeable,
-  EmotionCanvasTheme,
-  createComponent,
-  styled,
-  StyledType,
-} from '@workday/canvas-kit-react/common';
-import {ButtonColors} from './types';
+import {useTheme, Themeable, createComponent} from '@workday/canvas-kit-react/common';
 import {BaseButton} from './BaseButton';
 import {TertiaryButtonProps} from './TertiaryButton';
 import {base, brand, system} from '@workday/canvas-tokens-web';
-import {createStencil} from '@workday/canvas-kit-styling';
-import {mergeStyles} from '../../layout';
+import {createStencil, px2rem} from '@workday/canvas-kit-styling';
+import {mergeStyles} from '@workday/canvas-kit-react/layout';
+import {systemIconStencil} from '@workday/canvas-kit-react/icon';
 
 export interface ToolbarIconButtonProps
   extends Omit<TertiaryButtonProps, 'size' | 'variant'>,
@@ -31,61 +22,63 @@ export const toolbarIconButtonStencil = createStencil({
     width: system.space.x8,
     height: system.space.x8,
     borderRadius: system.shape.x1,
+    [systemIconStencil.vars.color]: system.color.icon.default,
     ['& .wd-icon']: {
       display: 'inline-block',
       width: 20,
       height: 20,
     },
-    '&:hover': {
+    '&:hover, &.hover': {
       backgroundColor: system.color.bg.alt.default,
+      [systemIconStencil.vars.color]: system.color.icon.strong,
     },
     '&:active': {
       backgroundColor: system.color.bg.alt.stronger,
+      [systemIconStencil.vars.color]: system.color.icon.strong,
     },
     '&:focus-visible, &.focus': {
-      // outline: '2px solid transparent',
-      // outlineOffset: '2px',
+      [systemIconStencil.vars.color]: system.color.icon.default,
     },
-    '&:disabled': {},
+    '&:disabled': {
+      // Can't find system token for soap600
+      [systemIconStencil.vars.color]: base.soap600,
+      opacity: '1',
+    },
   },
   modifiers: {
     toggled: {
+      /**
+       * Selected state:
+       * WHCM = Windows 11 high contrast desktop theme (mode)
+       * Can't use 'outline': already in use as 'transparent' for WHCM
+       * When true: use 'border'
+       * When false: use 'border' none and add 1px padding for alignment
+       * Note: 'border' always appears visible in WHCM
+       * Note: Using '!important' because focus and hover states override border color
+       */
       true: {
-        // Using '!important' because inherited focus state changes border colors
-        // Can't have that when using border to communicate 'on' state
         border: `1px solid ${system.color.border.contrast.default} !important`,
         backgroundColor: brand.primary.lightest,
-        '&:hover': {},
-        '&:active': {},
-        '&:focus-visible, &.focus': {},
+        [systemIconStencil.vars.color]: brand.primary.base,
+
+        '&:hover, &.hover, &:active': {
+          [systemIconStencil.vars.color]: brand.primary.dark,
+        },
+        '&:focus-visible, &.focus': {
+          backgroundColor: brand.primary.lightest,
+          [systemIconStencil.vars.color]: brand.primary.base,
+        },
         '&:disabled': {
           border: `1px solid ${system.color.border.input.disabled} !important`,
           backgroundColor: brand.primary.lightest,
-          opacity: '1',
+          [systemIconStencil.vars.color]: brand.primary.light,
         },
       },
       false: {
-        // make sure border color is mapped to a background color
-        // so border does not appear in Windows 11 high contrast mode
-        border: '1px solid transparent',
+        border: 'none',
+        padding: px2rem(1),
       },
     },
-  },
-});
-
-const StyledToolbarIconButton = styled(BaseButton)<StyledType & ToolbarIconButtonProps>({
-  ['& .wd-icon']: {
-    display: 'inline-block',
-    width: 20,
-    height: 20,
-  },
-  '&:focus-visible, &.focus': {
-    ...focusRing({
-      width: 2,
-      separation: 0,
-      innerColor: 'transparent',
-      outerColor: brand.common.focusOutline,
-    }),
   },
 });
 
@@ -123,9 +116,7 @@ export const ToolbarIconButton = createComponent('button')({
       <BaseButton
         ref={ref}
         as={Element}
-        // colors={getToolbarIconButtonColors(theme, toggled)}
         size={'small'}
-        fillIcon={toggled}
         aria-pressed={toggled}
         {...mergeStyles(elemProps, toolbarIconButtonStencil({toggled: toggled}))}
       >
@@ -134,34 +125,3 @@ export const ToolbarIconButton = createComponent('button')({
     );
   },
 });
-
-const getToolbarIconButtonColors = (theme: EmotionCanvasTheme, toggled?: boolean): ButtonColors => {
-  const {
-    canvas: {
-      palette: {primary: themePrimary},
-    },
-  } = theme;
-  return {
-    default: {
-      icon: toggled ? themePrimary.main : colors.licorice200,
-      // DONE background: toggled ? themePrimary.lightest : 'transparent',
-    },
-    hover: {
-      icon: toggled ? themePrimary.dark : colors.licorice500,
-      // DONE background: colors.soap300,
-    },
-    active: {
-      icon: toggled ? themePrimary.dark : colors.licorice500,
-      // DONE background: colors.soap500,
-    },
-    focus: {
-      icon: toggled ? themePrimary.main : colors.licorice200,
-      // DONE background: toggled ? themePrimary.lightest : 'transparent',
-    },
-    disabled: {
-      icon: toggled ? themePrimary.light : colors.soap600,
-      // DONE background: toggled ? themePrimary.lightest : 'transparent',
-      // DONE opacity: '1',
-    },
-  };
-};
