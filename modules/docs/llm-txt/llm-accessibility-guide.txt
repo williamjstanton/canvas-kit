@@ -1,0 +1,1165 @@
+# Canvas Kit Accessibility Guide for AI Agents
+
+## Purpose
+
+This guide provides comprehensive accessibility instructions for AI coding assistants working with Canvas Kit components. All code must be built with accessibility in mind and conform to WCAG 2.2 Level AA standards.
+
+## Core Requirements
+
+### WCAG 2.2 Level AA Compliance
+
+1. All generated code MUST conform to [WCAG 2.2 Level AA](https://www.w3.org/TR/WCAG22/)
+2. Go beyond minimal WCAG conformance wherever possible for a more inclusive experience
+3. Before generating code, plan how to implement it in a WCAG 2.2 compliant way
+4. After generating code, review it against WCAG 2.2 and iterate until accessible
+5. Code is built with accessibility in mind, but may still have issues - users should test with tools like [Accessibility Insights](https://accessibilityinsights.io/)
+
+### Canvas Kit Philosophy
+
+**"No ARIA is better than Bad ARIA"**
+
+Canvas Kit components are built with accessibility as a foundational principle:
+- Use semantic HTML first
+- Add ARIA only when semantic HTML is insufficient
+- Follow WAI-ARIA 1.2 specification and W3C ARIA Authoring Practices Guide (APG)
+- Test with actual assistive technologies
+
+## Bias Awareness and Inclusive Language
+
+### Respectful, Inclusive Language
+- Use people-first language (e.g., "person using a screen reader," not "blind user")
+- Avoid stereotypes or assumptions about ability, cognition, or experience
+- Avoid patronizing language, euphemisms, or casual phrasing that downplays poor accessibility
+
+### Bias-Aware and Error-Resistant
+- Avoid generating content that reflects implicit bias or outdated patterns
+- Critically assess accessibility choices and flag uncertain implementations
+- Double check for bias in training data and mitigate its impact
+
+### Verification-Oriented
+- Include reasoning or references to standards (WCAG, W3C APG) when suggesting implementations
+- State uncertainty clearly when accessibility nuances are present
+- Avoid fluff, empty reassurance, or overconfidence
+
+## The Accessibility Tree
+
+Every element must contribute properly to the accessibility tree with three key properties:
+
+1. **Name (Label)**: Describes the element's purpose (e.g., "Submit", "First Name")
+2. **Role**: Describes what the element is (e.g., button, textbox, menu)
+3. **State**: Describes current condition (e.g., checked, expanded, disabled)
+
+## Persona-Based Accessibility Requirements
+
+### Cognitive Accessibility
+
+- **Plain Language**: Use clear, simple language whenever possible
+- **Consistent Structure**: Use consistent page structure (landmarks) across the application
+- **Predictable Navigation**: Navigation items must appear in the same order across all pages
+- **Clean Interface**: Keep interface simple - reduce unnecessary distractions
+- **Headings**: Use headings to introduce sections - heading levels must accurately reflect hierarchy
+- **Single H1**: Use only one `<h1>` per page describing the overall topic
+- **No Skipped Levels**: Avoid skipping heading levels (h1 → h3)
+
+### Keyboard Accessibility
+
+#### Core Requirements
+
+- **All Interactive Elements**: Must be keyboard navigable with focus in predictable order (reading order)
+- **Visible Focus**: Keyboard focus must be clearly visible at all times
+- **Keyboard Operable**: All actions must be performable via keyboard
+- **No Unnecessary Tab Stops**: Static (non-interactive) elements should NOT be in tab order
+  - Exception: Elements receiving programmatic focus should have `tabindex="-1"`
+- **Hidden Elements**: Must not be keyboard focusable
+- **Skip Links**: Provide mechanism to skip repeated blocks (e.g., "Skip to main")
+- **No Focus Traps**: Focus must not become trapped without escape mechanism (Escape key)
+
+#### Composite Components (Grids, Menus, Listboxes, Tabs, etc.)
+
+For components with interactive children (date pickers, comboboxes, menus, radio groups, tabs):
+
+- **Single Tab Stop**: Container has one tab stop with appropriate role
+- **Arrow Navigation**: Manage child focus via arrow keys using roving tabindex or aria-activedescendant
+- **Focus on Open**: When container receives focus, show appropriate child as focused:
+  - For selection components: show currently selected child (or first if none selected)
+  - For previously visited components: show previously focused child
+  - Otherwise: show first interactive child
+
+#### Bypass Blocks - Skip Links
+
+A skip link MUST be the first focusable element:
+
+```html
+<header>
+  <a href="#maincontent" class="sr-only">Skip to main</a>
+  <!-- logo and other header elements -->
+</header>
+<nav>
+  <!-- main navigation -->
+</nav>
+<main id="maincontent"></main>
+```
+
+```css
+.sr-only:not(:focus):not(:active) {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+```
+
+#### Common Keyboard Commands
+
+- `Tab` = Move to next interactive element
+- `Shift + Tab` = Move to previous interactive element
+- `Arrow Keys` = Navigate within composite components
+- `Enter` = Activate focused control (button, link)
+- `Space` = Activate button or toggle checkbox
+- `Escape` = Close dialogs, menus, listboxes
+
+#### Managing Focus: Roving Tabindex Pattern
+
+For composite components using roving tabindex:
+
+1. **Initial Load**: Set `tabindex="0"` on element to be included in tab order; set `tabindex="-1"` on all other focusable elements
+2. **Arrow Key Pressed**:
+   - Set `tabindex="-1"` on element that has `tabindex="0"`
+   - Set `tabindex="0"` on element that will receive focus
+   - Call `element.focus()` on element with `tabindex="0"`
+
+#### Managing Focus: aria-activedescendant Pattern
+
+Alternative to roving tabindex:
+
+- Container has `tabindex="0"` and `aria-activedescendant="IDREF"` where IDREF matches ID of active child
+- Use CSS to draw focus outline around element referenced by `aria-activedescendant`
+- When arrow keys pressed, update `aria-activedescendant` value
+- Child elements do NOT need tabindex attributes
+
+### Low Vision Accessibility
+
+#### Color and Contrast
+
+- **Prefer High Contrast**: Dark text on light backgrounds OR light text on dark backgrounds
+- **Avoid Low Contrast**: Never light-on-light or dark-on-dark
+- **Text Contrast**: Minimum 4.5:1 for normal text, 3:1 for large text (18.5px bold or 24px)
+- **Graphics Contrast**: Parts required to understand graphic must be 3:1 with adjacent colors
+- **Control Contrast**: Parts needed to identify control type and state must be 3:1 with adjacent colors
+- **No Color-Only Information**: Never use color alone to convey information
+  - ✅ Use text AND/OR shapes in addition to color
+  - ❌ Red border alone for error state
+
+#### Canvas Kit Color Usage
+
+```typescript
+// ✅ Good - uses FormField error state with icon and text
+<FormField error="alert">
+  <FormField.Label>Email</FormField.Label>
+  <FormField.Input as={TextInput} />
+  <FormField.Hint>Please enter a valid email address</FormField.Hint>
+</FormField>
+
+// ❌ Bad - color only, no text explanation
+<TextInput style={{borderColor: 'red'}} />
+```
+
+### Screen Reader Accessibility
+
+#### Semantic Structure
+
+- **Landmarks**: Use `<header>`, `<nav>`, `<main>`, `<footer>` for page structure
+- **Headings**: Use `<h1>` through `<h6>` to introduce sections
+  - One `<h1>` per page describing overall topic
+  - Don't skip heading levels
+  - Levels accurately describe hierarchy
+- **Correct Semantics**: All elements must convey name, role, value, states, properties
+  - Prefer native HTML elements
+  - Use ARIA only when HTML insufficient
+
+### Voice Access Accessibility
+
+- **Accessible Names Match Visual Labels**: Voice users say "Click [label]" - `aria-label` must contain visual label text
+- **Appropriate Roles**: Interactive elements must have correct roles and keyboard behaviors
+
+## Accessible Names and Descriptions
+
+### Naming Priority (in order of precedence)
+
+1. `aria-labelledby` (reference to element by unique id)
+2. `aria-label` (direct string label)
+3. `<label>` with `for` attribute (for form inputs)
+4. `placeholder` (for inputs - use sparingly, NOT a replacement for labels)
+5. `alt` (for images)
+6. Text content (visible text between tags)
+7. `title` (use as last resort, not reliably announced)
+
+### Rules for Accessible Names
+
+- **Always prefer visible text** - Benefits all users
+- **Use native HTML techniques** first (like `<label>`)
+- **Avoid browser fallback** methods like `title` or `placeholder`
+- **Keep names brief and useful** - "Submit" not "Click this button to submit the form"
+- **Match visual labels** - For voice access compatibility
+
+## Common ARIA Patterns in Canvas Kit
+
+### Button Pattern
+
+```typescript
+// ✅ Basic button - no ARIA needed (semantic HTML)
+<button>Submit</button>
+
+// ✅ Icon-only button - requires aria-label
+<IconButton icon={xIcon} aria-label="Close dialog" />
+
+// Canvas Kit Tooltip adds aria-label automatically
+<Tooltip title="Close dialog">
+  <IconButton icon={xIcon} />
+</Tooltip>
+
+// ✅ Toggle button - requires aria-pressed
+<button aria-pressed={isPressed}>Bold</button>
+
+// ✅ Button with menu - requires aria-haspopup and aria-expanded
+<button aria-haspopup="true" aria-expanded={isOpen}>
+  Actions
+</button>
+
+// ❌ Bad - div is not keyboard accessible
+<div onClick={handleClick}>Submit</div>
+
+// ⚠️ If you must use div, add full keyboard support:
+<div
+  role="button"
+  tabIndex={0}
+  onClick={handleClick}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick(e);
+    }
+  }}
+>
+  Submit
+</div>
+```
+
+**Canvas Kit Menu handles this automatically:**
+
+```typescript
+import {Menu} from '@workday/canvas-kit-react/menu';
+import {PrimaryButton} from '@workday/canvas-kit-react/button';
+
+// Menu.Target adds aria-haspopup and aria-expanded automatically
+<Menu>
+  <Menu.Target>
+    <PrimaryButton>Actions</PrimaryButton>
+  </Menu.Target>
+  <Menu.Popper>
+    <Menu.Card>
+      <Menu.List>
+        <Menu.Item>Edit</Menu.Item>
+        <Menu.Item>Delete</Menu.Item>
+      </Menu.List>
+    </Menu.Card>
+  </Menu.Popper>
+</Menu>
+```
+
+### Menu Pattern (Actions Menu with Roving Tabindex)
+
+Canvas Kit Menu follows W3C Menu Button Actions pattern with roving tabindex.
+
+**Canvas Kit provides automatically:**
+- `Menu.Target`: `aria-haspopup="true"`, `aria-expanded={true|false}`
+- `Menu.List`: `role="menu"`, `aria-labelledby={targetId}`
+- `Menu.Item`: `role="menuitem"`, roving tabindex management
+- `Menu.Submenu`: Nested menu support with `aria-haspopup` and `aria-expanded`
+
+**Keyboard Navigation (automatic):**
+- `Enter` or `Space`: Opens menu and focuses first item; activates item and closes menu
+- `Escape`: Closes menu and returns focus to trigger
+- `Up/Down Arrow`: Moves through menu items (wraps around)
+- `Home/End`: Moves to first/last item
+- `Right/Left Arrow`: Opens/closes submenus
+
+```typescript
+<Menu>
+  <Menu.Target>
+    <PrimaryButton>Actions</PrimaryButton>
+  </Menu.Target>
+  <Menu.Popper>
+    <Menu.Card>
+      <Menu.List>
+        <Menu.Item>First Action</Menu.Item>
+        <Menu.Item>Second Action</Menu.Item>
+        <Menu.Submenu>
+          <Menu.TargetItem>More Actions</Menu.TargetItem>
+          <Menu.Card>
+            <Menu.List>
+              <Menu.Item>Nested Action</Menu.Item>
+            </Menu.List>
+          </Menu.Card>
+        </Menu.Submenu>
+      </Menu.List>
+    </Menu.Card>
+  </Menu.Popper>
+</Menu>
+```
+
+**Screen Reader Announces:**
+- Closed: "Actions, button, menu popup, collapsed"
+- Opened: "Actions, menu, First Action, menu item, 1 of 4"
+- Submenu: "More Actions, menu item, has submenu, collapsed, 3 of 4"
+
+### Navigation Menus
+
+**Important:** Navigation menus should NOT use `role="menu"` or `role="menubar"`. These roles are for application-like action menus. Instead, use `<nav>` with `<ul>` and links.
+
+```html
+<!-- ✅ Good navigation pattern -->
+<nav>
+  <ul>
+    <li>
+      <button aria-expanded="false" tabindex="0">Section 1</button>
+      <ul hidden>
+        <li><a href="..." tabindex="-1">Link 1</a></li>
+        <li><a href="..." tabindex="-1">Link 2</a></li>
+      </ul>
+    </li>
+    <li>
+      <button aria-expanded="false" tabindex="-1">Section 2</button>
+      <ul hidden>
+        <li><a href="..." tabindex="-1">Link 1</a></li>
+        <li><a href="..." tabindex="-1">Link 2</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+```
+
+**Navigation Requirements:**
+- Use roving tabindex pattern - tab to nav, arrow across main items
+- Toggle `aria-expanded` when expanding/collapsing
+- Arrow keys navigate through sub-menus
+- `Escape` key closes expanded menus
+
+### Combobox Pattern (Select/Autocomplete with aria-activedescendant)
+
+Canvas Kit Combobox/Select uses aria-activedescendant pattern.
+
+**Canvas Kit provides automatically:**
+- Input: `role="combobox"`, `aria-haspopup="listbox"`, `aria-expanded`, `aria-autocomplete="list"`, `aria-controls`, `aria-activedescendant`
+- List: `role="listbox"`, `aria-labelledby`
+- Option: `role="option"`, `aria-selected`
+
+```typescript
+import {Select} from '@workday/canvas-kit-react/select';
+import {FormField} from '@workday/canvas-kit-react/form-field';
+
+<Select items={options}>
+  <FormField>
+    <FormField.Label>Choose Option</FormField.Label>
+    <FormField.Input as={Select.Input} />
+    <Select.Popper>
+      <Select.Card>
+        <Select.List>
+          {(item) => <Select.Item>{item}</Select.Item>}
+        </Select.List>
+      </Select.Card>
+    </Select.Popper>
+  </FormField>
+</Select>
+```
+
+### Form Fields
+
+Always use FormField to wrap inputs for proper labeling and error association.
+
+**FormField provides automatically:**
+- Associates label with input via unique `id`
+- Connects hint text with `aria-describedby`
+- Adds `aria-invalid="true"` for error states
+- Connects error messages with `aria-describedby`
+- Manages `aria-required` based on `isRequired` prop
+
+```typescript
+import {FormField} from '@workday/canvas-kit-react/form-field';
+import {TextInput} from '@workday/canvas-kit-react/text-input';
+
+// ✅ Good - FormField handles all associations
+<FormField error="alert" isRequired>
+  <FormField.Label>Email Address</FormField.Label>
+  <FormField.Field>
+    <FormField.Input as={TextInput} />
+    <FormField.Hint>Please enter a valid email address</FormField.Hint>
+  </FormField.Field>
+</FormField>
+
+// ❌ Bad - missing label and associations
+<TextInput placeholder="Email" />
+```
+
+#### Form Accessibility Requirements
+
+**Labels:**
+- All form controls MUST have labels that accurately describe their purpose
+- Use `<label>` with `for` attribute referencing control ID
+- Labels must provide clear instructions for what to input
+
+**Required Fields:**
+- Indicate required fields with asterisk in label
+- Use `aria-required="true"` to programmatically indicate (FormField does this)
+
+**Error Messages:**
+- Provide error messages for invalid input
+- Error messages must describe how to fix the issue
+- Use `aria-invalid="true"` when field has error (FormField does this)
+- Associate error messages with control via `aria-describedby` (FormField does this)
+
+**Error Patterns:**
+- **Inline errors (common)**: Place next to field, associate via `aria-describedby`
+- **Form-level errors (less common)**: Display at form start, identify specific fields in error
+
+**Submit Buttons:**
+- Don't disable submit buttons - let error messages trigger to help users identify invalid fields
+- When form submitted with invalid input, send focus to first invalid field via `element.focus()`
+
+```typescript
+// ✅ Good form pattern with Canvas Kit
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!isValid) {
+    // Focus first invalid field
+    firstInvalidFieldRef.current?.focus();
+    return;
+  }
+
+  // Submit form
+};
+
+<form onSubmit={handleSubmit}>
+  <FormField error={errors.email ? 'alert' : undefined} isRequired>
+    <FormField.Label>Email</FormField.Label>
+    <FormField.Field>
+      <FormField.Input
+        as={TextInput}
+        value={email}
+        onChange={setEmail}
+        ref={emailFieldRef}
+      />
+      {errors.email && <FormField.Hint>{errors.email}</FormField.Hint>}
+    </FormField.Field>
+  </FormField>
+
+  {/* Don't disable - allow error messages to show */}
+  <PrimaryButton type="submit">Submit</PrimaryButton>
+</form>
+```
+
+**Help Text:**
+- If help text is provided for controls, associate via `aria-describedby` (FormField does this)
+
+### Radio Groups and Checkboxes
+
+```typescript
+import {FormFieldGroup} from '@workday/canvas-kit-react/form-field';
+import {RadioGroup} from '@workday/canvas-kit-react/radio';
+
+// ✅ Use FormFieldGroup for grouped inputs
+<FormFieldGroup isRequired>
+  <FormField.Label>Notification Preference</FormField.Label>
+  <FormField.Field>
+    <RadioGroup name="notifications">
+      <RadioGroup.RadioButton value="email">Email</RadioGroup.RadioButton>
+      <RadioGroup.RadioButton value="sms">SMS</RadioGroup.RadioButton>
+      <RadioGroup.RadioButton value="none">None</RadioGroup.RadioButton>
+    </RadioGroup>
+  </FormField.Field>
+</FormFieldGroup>
+```
+
+### Dialog/Modal Pattern
+
+Canvas Kit Modal provides full accessibility automatically.
+
+**Modal provides:**
+- `role="dialog"`, `aria-modal="true"`, `aria-labelledby`
+- Focus trap within modal
+- Focus return to trigger on close
+- `Escape` key closes modal
+
+```typescript
+import {Modal} from '@workday/canvas-kit-react/modal';
+
+<Modal>
+  <Modal.Target>
+    <PrimaryButton>Open Dialog</PrimaryButton>
+  </Modal.Target>
+  <Modal.Overlay>
+    <Modal.Card>
+      <Modal.CloseIcon aria-label="Close" />
+      <Modal.Heading>Dialog Title</Modal.Heading>
+      <Modal.Body>
+        Dialog content goes here.
+      </Modal.Body>
+    </Modal.Card>
+  </Modal.Overlay>
+</Modal>
+```
+
+**Keyboard Navigation (automatic):**
+- `Escape`: Closes modal and returns focus to trigger
+- `Tab`: Focus cycles within modal (focus trap)
+- Focus automatically moves to modal on open
+- Focus returns to trigger on close
+
+## Canvas Kit Accessibility Components
+
+### AccessibleHide
+
+Hides content visually but keeps it available to screen readers (similar to sr-only pattern):
+
+```typescript
+import {AccessibleHide} from '@workday/canvas-kit-react/common';
+
+// ✅ Good - icon has accessible label
+<button>
+  <SystemIcon icon={searchIcon} />
+  <AccessibleHide>Search</AccessibleHide>
+</button>
+
+// ❌ Bad - no accessible label
+<button>
+  <SystemIcon icon={searchIcon} />
+</button>
+```
+
+### AriaLiveRegion
+
+Announces dynamic content changes to screen readers.
+
+**Automatically includes:** `aria-atomic="true"`, `aria-live="polite"`, `role="status"`
+
+```typescript
+import {AriaLiveRegion} from '@workday/canvas-kit-react/common';
+
+// ✅ Announces count updates
+<AriaLiveRegion>
+  {itemCount} items found
+</AriaLiveRegion>
+
+// ✅ Announces status updates
+<AriaLiveRegion>
+  {status === 'saving' ? 'Saving...' : 'Saved'}
+</AriaLiveRegion>
+```
+
+**Live Region Rules and Limitations:**
+
+1. **Use `polite` (default)** for most updates - waits for user to finish current task
+2. **Use `assertive` sparingly** - interrupts user (rarely needed)
+3. **Announced only once** - Users cannot repeat or re-examine announcements
+4. **Cannot be paused** - Users cannot prevent announcements
+5. **Plain text only** - No images, links, buttons, or interactive elements
+6. **Support varies** - Not 100% reliable across platforms/browsers
+
+**When to Use Live Regions:**
+- Dynamic search result counts
+- Form validation errors (use sparingly)
+- Status updates (e.g., "Saving...")
+- Timer countdowns
+- Filter results status
+
+**When NOT to Use Live Regions:**
+- Frequent updates (too disruptive)
+- Complex information users need to review
+- Interactive content
+- Information that requires user action
+
+```typescript
+// ✅ Good use case - filter results
+const [results, setResults] = useState([]);
+
+<input
+  type="search"
+  onChange={(e) => filterResults(e.target.value)}
+  aria-label="Filter items"
+/>
+<AriaLiveRegion>
+  {results.length} items shown
+</AriaLiveRegion>
+
+// ⚠️ Use sparingly - form error
+<FormField error="alert">
+  <FormField.Label>Email</FormField.Label>
+  <FormField.Field>
+    <FormField.Input as={TextInput} />
+    <FormField.Hint>
+      <AriaLiveRegion>Please enter a valid email</AriaLiveRegion>
+    </FormField.Hint>
+  </FormField.Field>
+</FormField>
+
+// ❌ Bad - too frequent updates
+<AriaLiveRegion>
+  {counter} // Updates every second - too disruptive
+</AriaLiveRegion>
+```
+
+## Graphics and Images
+
+### All Graphics Must Be Accounted For
+
+Graphics include: `<img>`, `<svg>`, font icons, emojis
+
+### All Graphics Must Have Correct Role
+
+- `<img>` has implicit role - no role attribute needed
+- `<svg>` should have `role="img"` for better support
+- Font icons and emojis need `role="img"` on container (e.g., `<span>`)
+
+### Informative vs Decorative Graphics
+
+**Informative graphics** convey important information not found elsewhere - MUST have alternative text
+
+**Decorative graphics** don't convey important information or duplicate nearby text - MUST be hidden from assistive tech
+
+### Informative Graphics - Alternative Text
+
+```typescript
+// ✅ Good - img with meaningful alt
+<img src="chart.png" alt="Sales increased 25% in Q4" />
+
+// ✅ Good - SVG with aria-label
+<svg role="img" aria-label="Warning">
+  <path d="..." />
+</svg>
+
+// ✅ Good - Canvas Kit SystemIcon with label
+<SystemIcon icon={warningIcon} aria-label="Warning" />
+
+// ❌ Bad - missing alt text
+<img src="chart.png" />
+
+// ❌ Bad - generic alt text
+<img src="chart.png" alt="Chart" />
+```
+
+**Alt Text Guidelines:**
+- Convey the meaning/purpose, not every detail
+- Keep concise but meaningful
+- Avoid "image of" or "picture of"
+- Don't use `title` attribute for alt text
+
+### Decorative Graphics - Must Be Hidden
+
+```typescript
+// ✅ Good - decorative img hidden
+<img src="decorative-line.png" alt="" />
+
+// ✅ Good - decorative SVG hidden
+<svg role="img" aria-hidden="true">
+  <path d="..." />
+</svg>
+
+// ✅ Good - decorative icon in button (text provides label)
+<button>
+  <SystemIcon icon={plusIcon} aria-hidden="true" />
+  Add Item
+</button>
+
+// ❌ Bad - decorative image with alt text
+<img src="decorative.png" alt="Decorative border" />
+```
+
+## Input and Control Labels
+
+### All Interactive Elements Must Have Visual Labels
+
+```typescript
+// ✅ Good - button has visible text label
+<PrimaryButton>Submit</PrimaryButton>
+
+// ✅ Good - input has associated label
+<FormField>
+  <FormField.Label>Full Name</FormField.Label>
+  <FormField.Input as={TextInput} />
+</FormField>
+
+// ✅ Good - icon button has aria-label for screen readers
+<IconButton icon={deleteIcon} aria-label="Delete item" />
+
+// ❌ Bad - no label
+<TextInput />
+
+// ❌ Bad - placeholder is not a label
+<TextInput placeholder="Enter name" />
+```
+
+### Label Association
+
+- If using `<label>`, ensure it has `for` attribute referencing control ID (FormField handles this)
+- For multiple controls with same label ("remove", "delete", etc.), use `aria-label` to clarify:
+  ```typescript
+  // ✅ Context-specific labels
+  <IconButton icon={trashIcon} aria-label="Delete John Smith's contact" />
+  <IconButton icon={trashIcon} aria-label="Delete Jane Doe's contact" />
+  ```
+
+### Voice Access Compatibility
+
+**Accessible names MUST contain the visual label text:**
+
+```typescript
+// ✅ Good - aria-label contains visual label
+<button aria-label="Submit form">
+  Submit
+</button>
+
+// ❌ Bad - aria-label doesn't match visual label
+<button aria-label="Send">
+  Submit
+</button>
+```
+
+## Page Title
+
+The page `<title>` element:
+
+- **MUST be defined** in `<title>` element in `<head>`
+- **MUST describe** the purpose of the page
+- **SHOULD be unique** for each page
+- **SHOULD front-load** unique information
+- **SHOULD follow format**: "[Unique page info] - [Section] - [Site name]"
+
+```html
+<!-- ✅ Good -->
+<title>Shopping Cart - Checkout - Acme Store</title>
+
+<!-- ❌ Bad - not unique -->
+<title>Acme Store</title>
+
+<!-- ❌ Bad - not front-loaded -->
+<title>Acme Store - Checkout - Shopping Cart</title>
+```
+
+## Tables and Grids
+
+### Column and Row Headers Must Be Programmatically Associated
+
+Use `<th>` elements for headers. Most tables have both column and row headers.
+
+```html
+<!-- ✅ Good - table with column and row headers -->
+<table>
+  <tr>
+    <th>Product</th>
+    <th>Price</th>
+    <th>Quantity</th>
+  </tr>
+  <tr>
+    <th>Widget A</th>
+    <td>$10</td>
+    <td>5</td>
+  </tr>
+  <tr>
+    <th>Widget B</th>
+    <td>$15</td>
+    <td>3</td>
+  </tr>
+</table>
+
+<!-- ✅ Good - table with just column headers -->
+<table>
+  <tr>
+    <th>Name</th>
+    <th>Email</th>
+    <th>Phone</th>
+  </tr>
+  <tr>
+    <td>John Smith</td>
+    <td>john@example.com</td>
+    <td>555-0100</td>
+  </tr>
+</table>
+```
+
+### Prefer Simple Tables
+
+**Simple tables** have one set of column/row headers - no nested rows or spanning cells.
+- Better screen reader support
+- Easier for users with cognitive disabilities
+
+**Complex tables** have multiple header levels or spanning cells.
+- Harder to understand and use
+- Should be broken into multiple simple tables when possible
+- Or use alternative layouts (lists, cards)
+
+### Use Tables for Static Information
+
+Tables for static data organized in rows/columns:
+- Financial reports
+- Schedules
+- Comparison data
+
+### Use Grids for Dynamic Information
+
+Grids for dynamic interactive data:
+- Date pickers
+- Interactive calendars
+- Spreadsheets
+
+**Grid Requirements (using ARIA):**
+
+```html
+<!-- ✅ Good - proper grid structure -->
+<div role="grid">
+  <div role="row">
+    <div role="columnheader">Column 1</div>
+    <div role="columnheader">Column 2</div>
+  </div>
+  <div role="row">
+    <div role="gridcell">Cell 1</div>
+    <div role="gridcell">Cell 2</div>
+  </div>
+</div>
+
+<!-- ❌ Bad - missing row wrapper -->
+<div role="grid">
+  <div role="columnheader">Column 1</div>
+  <div role="gridcell">Cell 1</div>
+</div>
+```
+
+## Focus Management Best Practices
+
+### Tab Order
+
+- Use natural DOM order for tab order
+- **Avoid `tabIndex` > 0** - breaks natural flow
+- Use `tabIndex={-1}` to remove from tab order but keep focusable
+- Ensure logical reading order matches visual order
+
+### Focus Indicators
+
+```typescript
+// ❌ Bad - removes focus indicator without replacement
+const badStyles = createStyles({
+  '&:focus': {
+    outline: 'none', // NEVER do this
+  }
+});
+
+// ✅ Good - Canvas Kit components have built-in focus indicators
+<PrimaryButton>Submit</PrimaryButton>
+
+// ✅ Good - custom focus indicator with sufficient contrast
+const goodStyles = createStyles({
+  '&:focus-visible': {
+    outline: `2px solid ${system.color.border.primary}`,
+    outlineOffset: '2px',
+  }
+});
+```
+
+### Automatic Focus Changes
+
+```typescript
+// ❌ Bad - unexpected focus change
+useEffect(() => {
+  inputRef.current?.focus(); // Sudden focus change confuses users
+}, [someState]);
+
+// ✅ Good - focus changes as result of user action
+const handleAddItem = () => {
+  addItem();
+  // Focus new item after user-initiated action
+  setTimeout(() => newItemRef.current?.focus(), 0);
+};
+
+// ✅ Good - focus management in modal (Canvas Kit handles this)
+<Modal>
+  {/* Focus moves to modal on open, returns to trigger on close */}
+</Modal>
+```
+
+## Common Accessibility Pitfalls
+
+### ❌ Missing Labels
+
+```typescript
+// ❌ Bad - no label
+<TextInput placeholder="Enter name" />
+
+// ✅ Good - visible label with FormField
+<FormField>
+  <FormField.Label>Full Name</FormField.Label>
+  <FormField.Input as={TextInput} placeholder="e.g., John Smith" />
+</FormField>
+```
+
+### ❌ Icon-Only Buttons Without Labels
+
+```typescript
+// ❌ Bad - no accessible name
+<IconButton icon={trashIcon} />
+
+// ✅ Good - aria-label provides name
+<IconButton icon={trashIcon} aria-label="Delete item" />
+
+// ✅ Better - Tooltip adds aria-label automatically
+<Tooltip title="Delete item">
+  <IconButton icon={trashIcon} />
+</Tooltip>
+```
+
+### ❌ Non-Semantic Interactive Elements
+
+```typescript
+// ❌ Bad - div is not semantic or keyboard accessible
+<div onClick={handleClick}>Click me</div>
+
+// ✅ Good - button is semantic and keyboard accessible
+<button onClick={handleClick}>Click me</button>
+```
+
+### ❌ Color-Only Information
+
+```typescript
+// ❌ Bad - relies only on color
+<Text color="red">Error: Invalid input</Text>
+
+// ✅ Good - uses FormField with error state (icon + text + ARIA)
+<FormField error="alert">
+  <FormField.Label>Email</FormField.Label>
+  <FormField.Input as={TextInput} />
+  <FormField.Hint>Error: Invalid input</FormField.Hint>
+</FormField>
+```
+
+### ❌ Disabled Submit Without Explanation
+
+```typescript
+// ❌ Bad - user doesn't know why button is disabled
+<PrimaryButton disabled={!isValid}>Submit</PrimaryButton>
+
+// ✅ Good - provide hints about what's needed, don't disable
+<FormField error={errors.email ? 'alert' : undefined}>
+  <FormField.Label>Email</FormField.Label>
+  <FormField.Input as={TextInput} value={email} />
+  {errors.email && <FormField.Hint>{errors.email}</FormField.Hint>}
+</FormField>
+<PrimaryButton>Submit</PrimaryButton>
+```
+
+## Touch Target Size
+
+All interactive elements must meet minimum touch target sizes:
+
+- **Minimum**: 24x24 pixels (WCAG 2.2 Level AA)
+- **Recommended**: 44x44 pixels
+- Canvas Kit buttons meet these requirements by default
+
+```typescript
+// ✅ Canvas Kit buttons meet touch target requirements
+<PrimaryButton size="small">Submit</PrimaryButton> // Still meets 24x24 minimum
+<IconButton icon={closeIcon} aria-label="Close" /> // Meets requirements
+```
+
+## Windows High Contrast Mode
+
+Canvas Kit components work with Windows High Contrast Mode:
+
+- Uses semantic HTML for proper rendering
+- Respects system color schemes
+- Border and outline styles adjust automatically
+
+Test by enabling Windows High Contrast Mode:
+Windows Settings → Ease of Access → High Contrast
+
+## Accessibility Testing Checklist
+
+### Keyboard Testing
+
+- [ ] All interactive elements reachable via `Tab`
+- [ ] Tab order follows logical reading order
+- [ ] All actions performable without mouse
+- [ ] Focus indicators clearly visible (meets 3:1 contrast)
+- [ ] No keyboard traps (can escape all areas)
+- [ ] Custom keyboard shortcuts work and are documented
+- [ ] Arrow key navigation works in composite components
+
+### Screen Reader Testing
+
+**Test with:**
+- Windows: NVDA (free) or JAWS (paid)
+- macOS/iOS: VoiceOver (built-in)
+- Chrome: ChromeVox extension
+
+**Verify:**
+- [ ] All images have appropriate alt text (or are hidden if decorative)
+- [ ] Form inputs have associated labels
+- [ ] Error messages are announced
+- [ ] Dynamic content updates announced appropriately (not too frequently)
+- [ ] Heading structure is logical (one h1, no skipped levels)
+- [ ] Lists use proper markup (`<ul>`, `<ol>`, `<li>`)
+- [ ] Tables have headers associated with cells
+- [ ] Interactive elements have appropriate roles
+- [ ] All elements have accessible names
+
+### Visual Testing
+
+- [ ] Text contrast meets WCAG AA (4.5:1 normal, 3:1 large)
+- [ ] Graphics contrast meets 3:1 requirement
+- [ ] Interactive elements meet minimum size (24x24px)
+- [ ] Focus indicators meet contrast requirements (3:1)
+- [ ] UI works at 200% zoom
+- [ ] Color is not the only indicator of state
+- [ ] Test in Windows High Contrast Mode
+
+### Browser DevTools
+
+**Chrome DevTools:**
+1. Open DevTools (F12)
+2. Navigate to "Elements" tab
+3. Select "Accessibility" pane
+4. View accessibility tree
+5. Check ARIA attributes
+6. View computed accessible name and role
+7. Check contrast ratios
+
+## Screen Reader Expected Announcements
+
+### Button
+- "Submit, button" (text + role)
+- "Close, button" (aria-label + role)
+- "Bold, toggle button, pressed" (toggle state)
+
+### Form Input
+- "Email, edit, required" (label + role + state)
+- "Email, edit, invalid, Please enter a valid email" (with error)
+
+### Menu
+- "Actions, button, menu popup, collapsed" (closed)
+- "Actions, menu, First Action, menu item, 1 of 4" (opened)
+- "More Actions, menu item, has submenu, collapsed, 3 of 4" (submenu)
+
+### Dialog
+- "Dialog title, dialog" (on open)
+- Focus moves to first focusable element in dialog
+
+## Quick Reference: Common Fixes
+
+### Issue: Button not accessible to screen readers
+```typescript
+// Fix: Add aria-label for icon-only buttons
+<IconButton icon={closeIcon} aria-label="Close dialog" />
+```
+
+### Issue: Form input not labeled
+```typescript
+// Fix: Wrap in FormField
+<FormField>
+  <FormField.Label>Email</FormField.Label>
+  <FormField.Input as={TextInput} />
+</FormField>
+```
+
+### Issue: Dynamic content not announced
+```typescript
+// Fix: Wrap in AriaLiveRegion (use sparingly)
+<AriaLiveRegion>
+  {count} items found
+</AriaLiveRegion>
+```
+
+### Issue: Missing skip link
+```html
+<!-- Fix: Add skip link as first focusable element -->
+<header>
+  <a href="#maincontent" class="sr-only">Skip to main</a>
+  <!-- header content -->
+</header>
+<main id="maincontent">
+  <!-- main content -->
+</main>
+```
+
+### Issue: Poor color contrast
+```typescript
+// Fix: Use Canvas Kit tokens with sufficient contrast
+import {system} from '@workday/canvas-tokens-web';
+
+const styles = createStyles({
+  color: system.color.text.default, // Meets contrast requirements
+  backgroundColor: system.color.bg.default,
+});
+```
+
+### Issue: Modal doesn't trap focus
+```typescript
+// Fix: Use Canvas Kit Modal (provides focus trap automatically)
+<Modal>
+  <Modal.Target><PrimaryButton>Open</PrimaryButton></Modal.Target>
+  <Modal.Overlay>
+    <Modal.Card>
+      <Modal.Heading>Title</Modal.Heading>
+      <Modal.Body>Content</Modal.Body>
+    </Modal.Card>
+  </Modal.Overlay>
+</Modal>
+```
+
+## Resources
+
+### W3C Standards
+- [WCAG 2.2 Guidelines](https://www.w3.org/TR/WCAG22/)
+- [WAI-ARIA 1.2 Specification](https://www.w3.org/TR/wai-aria-1.2/)
+- [ARIA Authoring Practices Guide (APG)](https://www.w3.org/WAI/ARIA/apg/)
+
+### Canvas Kit Documentation
+- [Accessibility Overview](https://workday.github.io/canvas-kit/?path=/docs/guides-accessibility-overview--docs)
+- [ARIA Live Regions](https://workday.github.io/canvas-kit/?path=/docs/guides-accessibility-aria-live-regions--docs)
+- [Component Documentation](https://workday.github.io/canvas-kit/)
+
+### Testing Tools
+- [Accessibility Insights](https://accessibilityinsights.io/)
+- [axe DevTools](https://www.deque.com/axe/devtools/)
+- [WAVE](https://wave.webaim.org/)
+
+## Summary of Best Practices
+
+1. **Use semantic HTML** - Native elements have built-in accessibility
+2. **Leverage Canvas Kit components** - They handle accessibility automatically
+3. **Always label interactive elements** - No exceptions, match visual labels
+4. **Test with keyboard only** - Every feature must work without mouse
+5. **Test with screen reader** - Actually listen to your UI
+6. **Maintain logical tab order** - Follow visual/reading order
+7. **Provide clear focus indicators** - Never remove without replacement (3:1 contrast)
+8. **Use ARIA sparingly** - Only when semantic HTML insufficient
+9. **Associate labels with inputs** - Use FormField component
+10. **Make dynamic updates accessible** - Use AriaLiveRegion sparingly
+11. **Meet contrast requirements** - 4.5:1 text, 3:1 graphics/controls
+12. **Provide skip links** - Let users bypass repeated content
+13. **Don't disable without explanation** - Help users understand what's needed
+14. **Use plain language** - Support cognitive accessibility
+15. **Test with real users** - Automated tools catch only ~30% of issues
+
+## When to Ask for Help
+
+If you encounter:
+- Complex custom interactions not covered here
+- Conflicting ARIA requirements
+- Uncertainty about proper ARIA pattern
+- Component behavior that seems inaccessible
+- Screen reader announcing unexpected information
+- Contrast ratios that don't meet requirements
+- Keyboard navigation issues in composite components
+
+**Always prioritize accessibility - it's not optional. It's a fundamental requirement for building inclusive web applications.**

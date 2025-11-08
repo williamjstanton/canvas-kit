@@ -1,0 +1,171 @@
+import {DownloadLLMFile} from '../../../lib/DownloadLLMFile';
+
+<Meta title="Guides/Accessibility/LLM Accessibility Guide" />
+
+# LLM Accessibility Guide
+
+## Overview
+
+We've created a comprehensive **LLM Accessibility Instruction File** specifically designed for use
+with AI-based code assistants such as [Cursor](https://www.cursor.so/),
+[GitHub Copilot](https://github.com/features/copilot), and other LLM tools.
+
+This guide contains detailed accessibility patterns, ARIA implementation guidelines, keyboard
+navigation standards, and Canvas Kit-specific accessibility best practices formatted for optimal LLM
+consumption.
+
+> **Important:** LLMs can make mistakes. Always verify accessibility implementations using this
+> guide and test with actual assistive technologies (screen readers, keyboard-only navigation).
+
+## What's Included
+
+This LLM instruction file covers:
+
+- **Core Accessibility Philosophy** - Canvas Kit's approach to accessible components
+- **ARIA Patterns** - Complete implementation patterns for common components
+- **Keyboard Navigation** - Standard keyboard shortcuts and focus management
+- **Screen Reader Support** - Expected announcements and semantic markup
+- **Canvas Kit Components** - AccessibleHide, AriaLiveRegion, and accessibility features built into
+  components
+- **Common Pitfalls** - Mistakes to avoid and how to fix them
+- **Testing Guidelines** - Checklist for keyboard, screen reader, and visual testing
+- **Code Examples** - Before/after comparisons for accessibility improvements
+
+## Download the Guide
+
+<DownloadLLMFile
+  rawFileLink="https://raw.githubusercontent.com/Workday/canvas-kit/master/modules/docs/llm-txt/llm-accessibility-guide.txt"
+  filename="llm-accessibility-guide.txt"
+/>
+
+## How to Use with AI Assistants
+
+### With Cursor
+
+1. Download the `llm-accessibility-guide.txt` file
+2. Open Cursor Settings
+3. Navigate to "Features" > "Docs"
+4. Add the file to your workspace context
+5. Reference it in prompts: "Following the Canvas Kit accessibility guide, add keyboard navigation
+   to this component"
+
+### With Other LLM Tools
+
+1. Download the file
+2. Include the content in your prompts or project context
+3. Reference specific sections when asking for accessibility improvements
+4. Use as a reference for code reviews
+
+## Key Principles
+
+### No ARIA is Better than Bad ARIA
+
+Canvas Kit follows the W3C principle that incorrect ARIA is worse than no ARIA at all. Always:
+
+1. **Use semantic HTML first** - Native elements have built-in accessibility
+2. **Add ARIA only when necessary** - When semantic HTML is insufficient
+3. **Test thoroughly** - Verify with actual screen readers and keyboard navigation
+
+### Canvas Kit Handles Accessibility
+
+Most Canvas Kit components handle accessibility automatically:
+
+```tsx
+// ✅ Menu automatically provides ARIA attributes and keyboard navigation
+<Menu>
+  <Menu.Target>
+    <PrimaryButton>Actions</PrimaryButton>
+  </Menu.Target>
+  <Menu.Popper>
+    <Menu.Card>
+      <Menu.List>
+        <Menu.Item>Edit</Menu.Item>
+        <Menu.Item>Delete</Menu.Item>
+      </Menu.List>
+    </Menu.Card>
+  </Menu.Popper>
+</Menu>
+
+// ✅ FormField automatically associates labels, hints, and errors
+<FormField>
+  <FormField.Label>Email</FormField.Label>
+  <FormField.Input as={TextInput} />
+  <FormField.Hint>We'll never share your email</FormField.Hint>
+</FormField>
+```
+
+## Quick Reference
+
+### Common Accessibility Tasks
+
+**Add label to icon-only button:**
+
+```tsx
+<IconButton icon={closeIcon} aria-label="Close dialog" />
+```
+
+**Make dynamic content announced by screen readers:**
+
+```tsx
+import {AriaLiveRegion} from '@workday/canvas-kit-react/common';
+
+<AriaLiveRegion>{statusMessage}</AriaLiveRegion>;
+```
+
+**Hide content visually but keep for screen readers:**
+
+```tsx
+import {AccessibleHide} from '@workday/canvas-kit-react/common';
+
+<button>
+  <SystemIcon icon={searchIcon} />
+  <AccessibleHide>Search</AccessibleHide>
+</button>;
+```
+
+## Testing Your Implementation
+
+After using the LLM guide to implement accessibility features, always test:
+
+### Keyboard Testing
+
+- [ ] Navigate using `Tab` key only
+- [ ] All interactive elements are reachable
+- [ ] All actions can be performed without mouse
+- [ ] Focus indicators are clearly visible
+- [ ] No keyboard traps
+
+### Screen Reader Testing
+
+- [ ] Test with NVDA (Windows) or VoiceOver (Mac)
+- [ ] All elements have appropriate accessible names
+- [ ] Dynamic changes are announced when appropriate
+- [ ] Navigation is logical and intuitive
+
+### Browser DevTools
+
+- [ ] Use Chrome DevTools Accessibility panel
+- [ ] Verify ARIA attributes are correct
+- [ ] Check accessibility tree structure
+- [ ] Confirm contrast ratios meet WCAG standards
+
+## Additional Resources
+
+- [Canvas Kit Accessibility Overview](?path=/docs/guides-accessibility-overview--docs)
+- [ARIA Live Regions Guide](?path=/docs/guides-accessibility-aria-live-regions--docs)
+- [W3C ARIA Authoring Practices](https://www.w3.org/WAI/ARIA/apg/)
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+
+## Feedback
+
+If you find issues with the LLM accessibility guide or have suggestions for improvements, please:
+
+- [Open an issue on GitHub](https://github.com/Workday/canvas-kit/issues/new?labels=accessibility&template=bug.md)
+- Contribute improvements via pull request
+- Share your experiences with the guide
+
+---
+
+**Remember:** Accessibility is not optional. It's a fundamental requirement for building inclusive
+web applications. The LLM guide is a tool to help you implement accessibility correctly, but always
+verify with real users and assistive technologies.
