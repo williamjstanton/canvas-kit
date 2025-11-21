@@ -82,19 +82,23 @@ popups in the
 
 Focus management is important to accessibility of popup contents. The following example shows
 `useFocusRedirect` being used to manage focus in and out of a Popup. This is very useful for
-Dialog-style popups. Since `Popup.Popper` renders contents to the bottom of the document body,
-`aria-owns` is used for screen readers that support it. This effectively treats a Popup like it
-exists in between the buttons while it is opened. Screen readers will navigate the content as if the
-content was not portalled to the bottom of the document body. Focus redirection tries to treat the
-Popup as if it were inline to the document. Tabbing out of the Popup will close the Popup and move
-focus to the next appropriate element.
-
-> **Note**: Safari does not support `aria-owns`. This means that the contents of the Popup will
-> appears out of order to Safari + VoiceOver users. We render popups at the bottom of the
-> document.body to ensure proper rendering. You could use `portal=false` on the `Popper` component,
-> but that would risk incorrect rendering in all browsers.
+Dialog-style popups. Focus redirection tries to treat the Popup as if it were inline to the
+document. Tabbing out of the Popup will close the Popup and move focus to the next appropriate
+element.
 
 <ExampleCodeBlock code={FocusRedirect} />
+
+> **Accessibility Note**: The `useFocusRedirect` hook **will not** have any effect on the reading
+> order of a screen reader. Screen reader users may get confused or disoriented when popups are
+> portalled to the bottom of the document body. In this example, we're testing the use of
+> `aria-owns` on a sibling `<div>` element pointing to the `Popup.Card` component. This remaps the
+> hierarchy of the accessibility tree to address the reading order problem. For another cool
+> example, check out the `<Table.Header>` components with `aria-owns` in the
+> [Table with Filterable Column Headers](?path=/docs/guides-accessibility-examples-advanced-tables--docs#filterable-column-headers).
+
+### Inline Popups With `portal={false}`
+
+TODO: Add example of inline popups with `portal={false}`.
 
 ### Focus Trapping
 
