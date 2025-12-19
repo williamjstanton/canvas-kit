@@ -13,6 +13,7 @@ import {BodyOverflow as BodyOverflowExample} from './examples/BodyOverflow';
 import {FullOverflow as FullOverflowExample} from './examples/FullOverflow';
 import {FormModal as FormModalExample} from './examples/FormModal';
 import {IframeTest as IFrameExample} from './examples/IframeTest';
+import {SessionTimeout as SessionTimeoutExample} from './examples/SessionTimeout';
 
 export default {
   title: 'Components/Popups/Modal',
@@ -53,4 +54,7 @@ export const FormModal: Story = {
 };
 export const Iframe: Story = {
   render: IFrameExample,
+};
+export const SessionTimeout: Story = {
+  render: SessionTimeoutExample,
 };
